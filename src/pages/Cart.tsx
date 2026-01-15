@@ -1,11 +1,10 @@
 import { Layout } from '@/components/layout/Layout';
 import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Minus, Plus, Trash2, ShoppingBag, AlertCircle } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingBag, AlertCircle, LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,22 +12,23 @@ import { useNavigate } from 'react-router-dom';
 
 const Cart = () => {
   const { items, updateQuantity, removeItem, clearCart, subtotal, platformFee, total } = useCart();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [customerInfo, setCustomerInfo] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-  });
 
   const formatPrice = (price: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
 
-  const handleCheckout = async () => {
-    if (!customerInfo.name || !customerInfo.phone || !customerInfo.address) {
-      toast.error('Please fill in all required fields');
+  const handleProceedToCheckout = () => {
+    if (!user) {
+      // Redirect to auth with return path
+      navigate('/auth', { state: { from: '/cart' } });
+      toast.info('Please sign in or create an account to complete your order');
       return;
     }
+  };
+
+  const handleCheckout = async () => {
+    if (!user) return;
 
     setIsCheckingOut(true);
     try {
@@ -47,12 +47,14 @@ const Cart = () => {
           .from('orders')
           .insert({
             business_id: businessId,
-            customer_name: customerInfo.name,
-            customer_phone: customerInfo.phone,
-            customer_email: customerInfo.email || null,
-            customer_address: customerInfo.address,
+            customer_user_id: user.id,
+            customer_name: user.email?.split('@')[0] || 'Customer',
+            customer_phone: 'From account',
+            customer_email: user.email,
+            customer_address: 'From account',
             total_amount: orderSubtotal + orderFee,
             platform_fee: orderFee,
+            status: 'pending',
           })
           .select()
           .single();
@@ -73,9 +75,10 @@ const Cart = () => {
       }
 
       clearCart();
-      toast.success('Order placed successfully! The business will contact you.');
-      navigate('/');
+      toast.success('Order placed successfully! Proceed to payment.');
+      navigate('/account');
     } catch (error) {
+      console.error('Checkout error:', error);
       toast.error('Failed to place order. Please try again.');
     } finally {
       setIsCheckingOut(false);
@@ -134,16 +137,6 @@ const Cart = () => {
 
           <div className="space-y-4">
             <Card>
-              <CardHeader><CardTitle>Customer Info</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <div><Label>Name *</Label><Input value={customerInfo.name} onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })} /></div>
-                <div><Label>Phone *</Label><Input value={customerInfo.phone} onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })} /></div>
-                <div><Label>Email</Label><Input type="email" value={customerInfo.email} onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })} /></div>
-                <div><Label>Address *</Label><Input value={customerInfo.address} onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })} /></div>
-              </CardContent>
-            </Card>
-
-            <Card>
               <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
@@ -154,9 +147,17 @@ const Cart = () => {
                   <AlertCircle className="w-4 h-4 mt-0.5 text-warning" />
                   <p className="text-muted-foreground">Delivery is paid offline when goods arrive. The business will contact you.</p>
                 </div>
-                <Button className="w-full bg-accent hover:bg-accent/90" onClick={handleCheckout} disabled={isCheckingOut}>
-                  {isCheckingOut ? 'Processing...' : 'Place Order'}
-                </Button>
+                
+                {!user ? (
+                  <Button className="w-full bg-accent hover:bg-accent/90" onClick={handleProceedToCheckout}>
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Sign In to Checkout
+                  </Button>
+                ) : (
+                  <Button className="w-full bg-accent hover:bg-accent/90" onClick={handleCheckout} disabled={isCheckingOut}>
+                    {isCheckingOut ? 'Processing...' : 'Place Order'}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
