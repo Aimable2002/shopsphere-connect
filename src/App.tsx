@@ -10,6 +10,7 @@ import Cart from "./pages/Cart";
 import Auth from "./pages/Auth";
 import Account from "./pages/Account";
 import Menu from "./pages/Menu";
+import BusinessCatalogue from "./pages/BusinessCatalogue";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/account" element={<Account />} />
               <Route path="/menu" element={<Menu />} />
+              <Route path="/business/:businessId" element={<BusinessCatalogue />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

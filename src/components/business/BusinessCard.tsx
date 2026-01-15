@@ -10,7 +10,7 @@ interface BusinessCardProps {
 
 export const BusinessCard = ({ business }: BusinessCardProps) => {
   return (
-    <Link to={`/?business=${business.id}`}>
+    <Link to={`/business/${business.id}`}>
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer animate-scale-in">
         <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden">
           {business.logo_url ? (
