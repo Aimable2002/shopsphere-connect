@@ -16,7 +16,7 @@ const Index = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [type, setType] = useState('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000000]);
   const [activeTab, setActiveTab] = useState('products');
 
   const { data: products = [], isLoading: productsLoading } = useProducts({
@@ -32,13 +32,13 @@ const Index = () => {
   const { data: categories = [] } = useProductCategories();
   const { data: types = [] } = useProductTypes();
 
-  const hasActiveFilters = search !== '' || category !== 'all' || type !== 'all' || priceRange[0] > 0 || priceRange[1] < 1000;
+  const hasActiveFilters = search !== '' || category !== 'all' || type !== 'all' || priceRange[0] > 0 || priceRange[1] < 10000000;
 
   const clearFilters = () => {
     setSearch('');
     setCategory('all');
     setType('all');
-    setPriceRange([0, 1000]);
+    setPriceRange([0, 10000000]);
   };
 
   return (
@@ -73,7 +73,7 @@ const Index = () => {
               onPriceRangeChange={setPriceRange}
               categories={categories}
               types={types}
-              maxPrice={1000}
+              maxPrice={10000000}
               onClearFilters={clearFilters}
               hasActiveFilters={hasActiveFilters}
             />
