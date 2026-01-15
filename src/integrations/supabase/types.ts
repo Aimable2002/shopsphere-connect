@@ -109,6 +109,7 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_phone: string
+          customer_user_id: string | null
           id: string
           platform_fee: number
           status: string
@@ -122,6 +123,7 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_phone: string
+          customer_user_id?: string | null
           id?: string
           platform_fee?: number
           status?: string
@@ -135,6 +137,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string
+          customer_user_id?: string | null
           id?: string
           platform_fee?: number
           status?: string
@@ -201,15 +204,39 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "business" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -336,6 +363,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["business", "customer"],
+    },
   },
 } as const
