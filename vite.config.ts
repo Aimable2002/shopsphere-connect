@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    allowedHosts: [
+      "isupplya.com",
+      "www.isupplya.com",
+      "server1.isupplya.com"
+    ],
     hmr: {
       overlay: false,
     },
@@ -19,3 +24,4 @@ export default defineConfig(({ mode }) => ({
     },
   },
 }));
+
