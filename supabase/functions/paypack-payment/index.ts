@@ -122,9 +122,11 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('PROJECT_URL')!;
-    const supabaseKey = Deno.env.get('PROJECT_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    console.log(' authorization of supabase passed')
 
     const { action, orderId, phone, amount } = await req.json();
 

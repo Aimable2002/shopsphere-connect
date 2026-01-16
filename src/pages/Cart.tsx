@@ -96,25 +96,55 @@ export default function Cart() {
   const handlePayment = async () => {
     setIsProcessingPayment(true);
     setPaymentStep('processing');
-
+  
     try {
+      if (!user?.email) {
+        throw new Error('User email not found');
+      }
+  
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders')
+        .select('id, created_at')
+        .eq('customer_email', user.email)
+        .order('created_at', { ascending: false })
+        .limit(1);
+  
+      if (ordersError) {
+        throw new Error(`Failed to fetch order: ${ordersError.message}`);
+      }
+  
+      if (!orders || orders.length === 0) {
+        throw new Error('No order found. Please create an order first.');
+      }
+  
+      const orderId = orders[0].id;
+      const amount = Math.round(getGrandTotal() * 100);
+  
       const { data, error } = await supabase.functions.invoke('paypack-payment', {
         body: {
           action: 'initiate',
+          orderId: orderId,
           phone: customerInfo.phone,
-          amount: Math.round(getGrandTotal() * 100),
+          amount: amount,
         },
       });
-
-      if (error) throw error;
-
+  
+      if (error) {
+        throw new Error(error.message || 'Function invocation failed');
+      }
+  
+      if (!data.success) {
+        throw new Error(data.error || 'Payment initiation failed');
+      }
+  
       setPaymentStep('success');
       clearCart();
       toast.success('Payment initiated! Check your phone.');
       
       setTimeout(() => navigate('/account'), 3000);
     } catch (error: any) {
-      toast.error('Payment failed. Please try again.');
+      console.error('Payment error:', error);
+      toast.error(error.message || 'Payment failed. Please try again.');
       setPaymentStep('payment');
     } finally {
       setIsProcessingPayment(false);
