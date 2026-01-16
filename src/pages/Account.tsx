@@ -16,13 +16,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Package, DollarSign, Settings, Store, Phone, User, MapPin, Bell } from 'lucide-react';
+import { Package, DollarSign, Settings, Store, Phone, User, MapPin, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { OrderStatus } from '@/types';
+import { Link } from 'react-router-dom';
 
 const statusOptions: OrderStatus[] = ['pending', 'confirmed', 'processing', 'completed', 'cancelled'];
 
-const statusColors: Record<OrderStatus, string> = {
+const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
   confirmed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   processing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
@@ -97,7 +98,7 @@ function OrderCard({ order, isBusiness }: { order: any; isBusiness: boolean }) {
             </SelectContent>
           </Select>
         ) : (
-          <Badge className={statusColors[order.status as OrderStatus]}>
+          <Badge className={statusColors[order.status] || statusColors.pending}>
             {order.status}
           </Badge>
         )}
@@ -114,7 +115,7 @@ function OrderCard({ order, isBusiness }: { order: any; isBusiness: boolean }) {
 
 export default function Account() {
   const navigate = useNavigate();
-  const { user, userRole, business, profile, loading, refreshBusiness, refreshProfile } = useAuth();
+  const { user, userRole, business, isAdmin, loading, refreshBusiness } = useAuth();
   const customerOrders = useCustomerOrders();
   const businessOrders = useBusinessOrders(business?.id || '');
   
@@ -139,7 +140,7 @@ export default function Account() {
       setBusinessForm({
         name: business.name || '',
         description: business.description || '',
-        phone: business.phone || '',
+        phone: business.phone_number || '',
         address: business.address || '',
       });
     }
@@ -155,7 +156,7 @@ export default function Account() {
       user_id: user!.id,
       name: businessForm.name,
       description: businessForm.description,
-      phone: businessForm.phone,
+      phone_number: businessForm.phone,
       address: businessForm.address,
     });
 
@@ -173,7 +174,7 @@ export default function Account() {
     const { error } = await supabase.from('businesses').update({
       name: businessForm.name,
       description: businessForm.description,
-      phone: businessForm.phone,
+      phone_number: businessForm.phone,
       address: businessForm.address,
     }).eq('id', business.id);
 
@@ -203,18 +204,29 @@ export default function Account() {
   }
 
   const orders = userRole === 'business' ? businessOrders.data : customerOrders.data;
-  const totalOrderValue = orders?.reduce((sum, o) => sum + Number(o.total_amount || 0), 0) || 0;
+  const totalOrderValue = orders?.reduce((sum, o: any) => sum + Number(o.total_amount || 0), 0) || 0;
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">
-          {userRole === 'business' ? 'Business Dashboard' : 'My Account'}
-        </h1>
+      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {userRole === 'business' ? 'Business Dashboard' : 'My Account'}
+          </h1>
+          
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="outline" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Admin Panel
+              </Button>
+            </Link>
+          )}
+        </div>
 
         {userRole === 'business' && (
-          <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -248,8 +260,12 @@ export default function Account() {
                     <Store className="h-6 w-6 text-blue-500" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Balance</p>
-                    <p className="text-2xl font-bold">${Number(business?.balance || 0).toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Products</p>
+                    <Link to="/menu">
+                      <Button variant="link" className="p-0 h-auto text-2xl font-bold">
+                        Manage →
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </CardContent>
@@ -258,9 +274,9 @@ export default function Account() {
         )}
 
         <Tabs defaultValue="orders">
-          <TabsList>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="orders" className="flex-1 sm:flex-none">Orders</TabsTrigger>
+            <TabsTrigger value="settings" className="flex-1 sm:flex-none">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="orders" className="mt-6">
@@ -296,7 +312,7 @@ export default function Account() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Business Name</Label>
                       <Input value={businessForm.name} onChange={(e) => setBusinessForm(p => ({ ...p, name: e.target.value }))} />
@@ -332,7 +348,7 @@ export default function Account() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Email: {profile?.email || user?.email}</p>
+                <p className="text-muted-foreground">Email: {user?.email}</p>
               </CardContent>
             </Card>
           </TabsContent>

@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Order, OrderItem } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function useCustomerOrders() {
@@ -11,12 +10,12 @@ export function useCustomerOrders() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
-        .eq('customer_id', user!.id)
+        .select('*, items:order_items(*)')
+        .eq('customer_user_id', user!.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Order[];
+      return data;
     },
     enabled: !!user,
   });
@@ -26,32 +25,14 @@ export function useBusinessOrders(businessId: string) {
   return useQuery({
     queryKey: ['business-orders', businessId],
     queryFn: async () => {
-      const { data: orderItems, error: itemsError } = await supabase
-        .from('order_items')
-        .select(`
-          *,
-          order:orders(*)
-        `)
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, items:order_items(*)')
         .eq('business_id', businessId)
         .order('created_at', { ascending: false });
 
-      if (itemsError) throw itemsError;
-      
-      // Group by order and return unique orders
-      const ordersMap = new Map();
-      orderItems?.forEach(item => {
-        if (item.order && !ordersMap.has(item.order.id)) {
-          ordersMap.set(item.order.id, {
-            ...item.order,
-            items: []
-          });
-        }
-        if (item.order) {
-          ordersMap.get(item.order.id).items.push(item);
-        }
-      });
-
-      return Array.from(ordersMap.values());
+      if (error) throw error;
+      return data;
     },
     enabled: !!businessId,
   });
@@ -67,13 +48,14 @@ export function useOrderItems(orderId: string) {
         .eq('order_id', orderId);
 
       if (error) throw error;
-      return data as OrderItem[];
+      return data;
     },
     enabled: !!orderId,
   });
 }
 
 interface CreateOrderData {
+  business_id: string;
   customer_name: string;
   customer_email: string;
   customer_phone: string;
@@ -82,11 +64,10 @@ interface CreateOrderData {
   platform_fee: number;
   items: {
     product_id: string;
-    business_id: string;
     product_name: string;
-    product_price: number;
+    unit_price: number;
     quantity: number;
-    subtotal: number;
+    total_price: number;
   }[];
 }
 
@@ -100,7 +81,8 @@ export function useCreateOrder() {
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
-          customer_id: user?.id,
+          business_id: data.business_id,
+          customer_user_id: user?.id,
           customer_name: data.customer_name,
           customer_email: data.customer_email,
           customer_phone: data.customer_phone,
@@ -118,11 +100,10 @@ export function useCreateOrder() {
       const orderItems = data.items.map(item => ({
         order_id: order.id,
         product_id: item.product_id,
-        business_id: item.business_id,
         product_name: item.product_name,
-        product_price: item.product_price,
+        unit_price: item.unit_price,
         quantity: item.quantity,
-        subtotal: item.subtotal
+        total_price: item.total_price
       }));
 
       const { error: itemsError } = await supabase

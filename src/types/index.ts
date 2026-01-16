@@ -1,6 +1,7 @@
 export type ProductCategory = 'dinners' | 'rooms' | 'apartments';
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'completed' | 'cancelled';
 export type AppRole = 'business' | 'customer';
+export type PriceUnit = 'fixed' | 'per_hour' | 'per_day' | 'per_night';
 
 export interface Profile {
   id: string;
@@ -18,11 +19,10 @@ export interface Business {
   user_id: string;
   name: string;
   description: string | null;
-  phone: string | null;
-  email: string | null;
+  phone_number: string | null;
   address: string | null;
   logo_url: string | null;
-  balance: number;
+  category: string;
   created_at: string;
   updated_at: string;
 }
@@ -33,51 +33,30 @@ export interface Product {
   name: string;
   description: string | null;
   price: number;
-  category: ProductCategory;
+  category: string;
+  type: string;
   image_url: string | null;
   is_available: boolean;
-  price_unit: 'fixed' | 'per_hour' | 'per_day' | 'per_night';
+  price_unit: PriceUnit;
+  is_reservable: boolean;
   min_duration_hours: number | null;
   max_duration_hours: number | null;
-  is_reservable: boolean;
   created_at: string;
   updated_at: string;
-  business?: Business;
-}
-
-export type ReservationStatus = 'pending' | 'confirmed' | 'active' | 'completed' | 'no_show' | 'cancelled';
-
-export interface Reservation {
-  id: string;
-  order_id: string;
-  product_id: string | null;
-  business_id: string;
-  customer_id: string;
-  start_time: string;
-  end_time: string;
-  deposit_amount: number;
-  total_price: number;
-  status: ReservationStatus;
-  customer_attended: boolean | null;
-  refund_amount: number;
-  business_payout: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-  product?: Product;
   business?: Business;
 }
 
 export interface Order {
   id: string;
-  customer_id: string | null;
+  business_id: string;
+  customer_user_id: string | null;
   customer_name: string;
-  customer_email: string;
+  customer_email: string | null;
   customer_phone: string;
   customer_address: string;
   total_amount: number;
   platform_fee: number;
-  status: OrderStatus;
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -86,11 +65,10 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string | null;
-  business_id: string | null;
   product_name: string;
-  product_price: number;
+  unit_price: number;
   quantity: number;
-  subtotal: number;
+  total_price: number;
   created_at: string;
 }
 
@@ -107,10 +85,26 @@ export interface Testimonial {
 export interface CartItem {
   product: Product;
   quantity: number;
+  // For reservable items
+  startDate?: Date;
+  startTime?: string;
+  endDate?: Date;
+  endTime?: string;
+  calculatedPrice?: number;
+  duration?: number;
+  durationUnit?: string;
 }
 
 export interface UserRole {
   id: string;
   user_id: string;
   role: AppRole;
+}
+
+export interface PlatformStats {
+  total_platform_fees: number;
+  total_orders: number;
+  pending_orders: number;
+  completed_orders: number;
+  total_order_value: number;
 }

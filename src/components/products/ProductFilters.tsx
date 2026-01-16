@@ -3,7 +3,6 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { ProductCategory } from '@/types';
 import {
   Sheet,
@@ -25,9 +24,8 @@ interface ProductFiltersProps {
   onSearchChange: (value: string) => void;
   category: ProductCategory | 'all';
   onCategoryChange: (value: ProductCategory | 'all') => void;
-  priceRange: [number, number];
-  onPriceRangeChange: (value: [number, number]) => void;
-  maxPrice: number;
+  priceRange: [number, number | null];
+  onPriceRangeChange: (value: [number, number | null]) => void;
 }
 
 export function ProductFilters({
@@ -37,15 +35,14 @@ export function ProductFilters({
   onCategoryChange,
   priceRange,
   onPriceRangeChange,
-  maxPrice,
 }: ProductFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const hasActiveFilters = category !== 'all' || priceRange[0] > 0 || priceRange[1] < maxPrice;
+  const hasActiveFilters = category !== 'all' || priceRange[0] > 0;
 
   const clearFilters = () => {
     onCategoryChange('all');
-    onPriceRangeChange([0, maxPrice]);
+    onPriceRangeChange([0, null]);
   };
 
   const FilterContent = () => (
@@ -66,38 +63,22 @@ export function ProductFilters({
         </Select>
       </div>
 
-      {/* Price Range Filter */}
+      {/* Min Price Filter Only */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <Label>Price Range</Label>
+          <Label>Minimum Price</Label>
           <span className="text-sm text-muted-foreground">
-            ${priceRange[0]} - ${priceRange[1]}
+            ${priceRange[0]}+
           </span>
         </div>
-        <Slider
-          value={priceRange}
-          onValueChange={(v) => onPriceRangeChange(v as [number, number])}
-          max={maxPrice}
-          step={1}
-          className="w-full"
-        />
         <div className="flex items-center gap-2">
           <Input
             type="number"
             value={priceRange[0]}
-            onChange={(e) => onPriceRangeChange([Number(e.target.value), priceRange[1]])}
-            className="w-24"
+            onChange={(e) => onPriceRangeChange([Number(e.target.value), null])}
+            className="w-full"
             min={0}
-            max={priceRange[1]}
-          />
-          <span className="text-muted-foreground">to</span>
-          <Input
-            type="number"
-            value={priceRange[1]}
-            onChange={(e) => onPriceRangeChange([priceRange[0], Number(e.target.value)])}
-            className="w-24"
-            min={priceRange[0]}
-            max={maxPrice}
+            placeholder="Min price"
           />
         </div>
       </div>
@@ -163,18 +144,14 @@ export function ProductFilters({
           </Select>
         </div>
 
-        <div className="flex-1 max-w-md space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Price Range</Label>
-            <span className="text-sm text-muted-foreground">
-              ${priceRange[0]} - ${priceRange[1]}
-            </span>
-          </div>
-          <Slider
-            value={priceRange}
-            onValueChange={(v) => onPriceRangeChange(v as [number, number])}
-            max={maxPrice}
-            step={1}
+        <div className="flex-1 max-w-xs space-y-2">
+          <Label>Min Price</Label>
+          <Input
+            type="number"
+            value={priceRange[0]}
+            onChange={(e) => onPriceRangeChange([Number(e.target.value), null])}
+            min={0}
+            placeholder="0"
           />
         </div>
 

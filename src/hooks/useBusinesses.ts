@@ -19,7 +19,7 @@ export function useBusinesses(filters: BusinessFilters = {}) {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Business[];
+      return data as unknown as Business[];
     },
   });
 }
@@ -35,7 +35,7 @@ export function useBusiness(id: string) {
         .single();
 
       if (error) throw error;
-      return data as Business;
+      return data as unknown as Business;
     },
     enabled: !!id,
   });

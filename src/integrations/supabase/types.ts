@@ -14,43 +14,58 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       businesses: {
         Row: {
           address: string | null
-          balance: number | null
+          category: string
           created_at: string
           description: string | null
-          email: string | null
           id: string
           logo_url: string | null
           name: string
-          phone: string | null
+          phone_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
-          balance?: number | null
+          category?: string
           created_at?: string
           description?: string | null
-          email?: string | null
           id?: string
           logo_url?: string | null
           name: string
-          phone?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
-          balance?: number | null
+          category?: string
           created_at?: string
           description?: string | null
-          email?: string | null
           id?: string
           logo_url?: string | null
           name?: string
-          phone?: string | null
+          phone_number?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -58,46 +73,36 @@ export type Database = {
       }
       order_items: {
         Row: {
-          business_id: string | null
           created_at: string
           id: string
           order_id: string
           product_id: string | null
           product_name: string
-          product_price: number
           quantity: number
-          subtotal: number
+          total_price: number
+          unit_price: number
         }
         Insert: {
-          business_id?: string | null
           created_at?: string
           id?: string
           order_id: string
           product_id?: string | null
           product_name: string
-          product_price: number
-          quantity: number
-          subtotal: number
+          quantity?: number
+          total_price: number
+          unit_price: number
         }
         Update: {
-          business_id?: string | null
           created_at?: string
           id?: string
           order_id?: string
           product_id?: string | null
           product_name?: string
-          product_price?: number
           quantity?: number
-          subtotal?: number
+          total_price?: number
+          unit_price?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "order_items_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
@@ -116,80 +121,91 @@ export type Database = {
       }
       orders: {
         Row: {
+          business_id: string
           created_at: string
           customer_address: string
-          customer_email: string
-          customer_id: string | null
+          customer_email: string | null
           customer_name: string
           customer_phone: string
+          customer_user_id: string | null
           id: string
           platform_fee: number
-          status: Database["public"]["Enums"]["order_status"] | null
+          status: string
           total_amount: number
           updated_at: string
         }
         Insert: {
+          business_id: string
           created_at?: string
           customer_address: string
-          customer_email: string
-          customer_id?: string | null
+          customer_email?: string | null
           customer_name: string
           customer_phone: string
+          customer_user_id?: string | null
           id?: string
-          platform_fee: number
-          status?: Database["public"]["Enums"]["order_status"] | null
+          platform_fee?: number
+          status?: string
           total_amount: number
           updated_at?: string
         }
         Update: {
+          business_id?: string
           created_at?: string
           customer_address?: string
-          customer_email?: string
-          customer_id?: string | null
+          customer_email?: string | null
           customer_name?: string
           customer_phone?: string
+          customer_user_id?: string | null
           id?: string
           platform_fee?: number
-          status?: Database["public"]["Enums"]["order_status"] | null
+          status?: string
           total_amount?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      payments: {
+      platform_transactions: {
         Row: {
           amount: number
           created_at: string
+          description: string | null
           id: string
-          order_id: string
-          paypack_ref: string | null
-          phone_number: string
+          order_id: string | null
           status: string
+          transaction_type: string
           updated_at: string
         }
         Insert: {
           amount: number
           created_at?: string
+          description?: string | null
           id?: string
-          order_id: string
-          paypack_ref?: string | null
-          phone_number: string
+          order_id?: string | null
           status?: string
+          transaction_type: string
           updated_at?: string
         }
         Update: {
           amount?: number
           created_at?: string
+          description?: string | null
           id?: string
-          order_id?: string
-          paypack_ref?: string | null
-          phone_number?: string
+          order_id?: string | null
           status?: string
+          transaction_type?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "payments_order_id_fkey"
+            foreignKeyName: "platform_transactions_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
@@ -200,50 +216,53 @@ export type Database = {
       products: {
         Row: {
           business_id: string
-          category: Database["public"]["Enums"]["product_category"]
+          category: string
           created_at: string
           description: string | null
           id: string
           image_url: string | null
-          is_available: boolean | null
-          is_reservable: boolean | null
+          is_available: boolean
+          is_reservable: boolean
           max_duration_hours: number | null
           min_duration_hours: number | null
           name: string
           price: number
-          price_unit: string | null
+          price_unit: string
+          type: string
           updated_at: string
         }
         Insert: {
           business_id: string
-          category: Database["public"]["Enums"]["product_category"]
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean | null
-          is_reservable?: boolean | null
+          is_available?: boolean
+          is_reservable?: boolean
           max_duration_hours?: number | null
           min_duration_hours?: number | null
           name: string
           price: number
-          price_unit?: string | null
+          price_unit?: string
+          type?: string
           updated_at?: string
         }
         Update: {
           business_id?: string
-          category?: Database["public"]["Enums"]["product_category"]
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean | null
-          is_reservable?: boolean | null
+          is_available?: boolean
+          is_reservable?: boolean
           max_duration_hours?: number | null
           min_duration_hours?: number | null
           name?: string
           price?: number
-          price_unit?: string | null
+          price_unit?: string
+          type?: string
           updated_at?: string
         }
         Relationships: [
@@ -256,162 +275,23 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          address: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          phone: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          address?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          address?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      reservations: {
-        Row: {
-          business_id: string
-          business_payout: number | null
-          created_at: string
-          customer_attended: boolean | null
-          customer_id: string
-          deposit_amount: number
-          end_time: string
-          id: string
-          notes: string | null
-          order_id: string
-          product_id: string | null
-          refund_amount: number | null
-          start_time: string
-          status: string
-          total_price: number
-          updated_at: string
-        }
-        Insert: {
-          business_id: string
-          business_payout?: number | null
-          created_at?: string
-          customer_attended?: boolean | null
-          customer_id: string
-          deposit_amount: number
-          end_time: string
-          id?: string
-          notes?: string | null
-          order_id: string
-          product_id?: string | null
-          refund_amount?: number | null
-          start_time: string
-          status?: string
-          total_price: number
-          updated_at?: string
-        }
-        Update: {
-          business_id?: string
-          business_payout?: number | null
-          created_at?: string
-          customer_attended?: boolean | null
-          customer_id?: string
-          deposit_amount?: number
-          end_time?: string
-          id?: string
-          notes?: string | null
-          order_id?: string
-          product_id?: string | null
-          refund_amount?: number | null
-          start_time?: string
-          status?: string
-          total_price?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "reservations_business_id_fkey"
-            columns: ["business_id"]
-            isOneToOne: false
-            referencedRelation: "businesses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reservations_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reservations_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      testimonials: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          is_approved: boolean | null
-          rating: number
-          user_id: string | null
-          user_name: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          is_approved?: boolean | null
-          rating: number
-          user_id?: string | null
-          user_name: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          is_approved?: boolean | null
-          rating?: number
-          user_id?: string | null
-          user_name?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
+          created_at: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
+          role: Database["public"]["Enums"]["user_role"]
           user_id: string
         }
         Insert: {
+          created_at?: string
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
+          role?: Database["public"]["Enums"]["user_role"]
           user_id: string
         }
         Update: {
+          created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string
         }
         Relationships: []
@@ -421,23 +301,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
+      get_platform_stats: { Args: never; Returns: Json }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "business" | "customer"
-      order_status:
-        | "pending"
-        | "confirmed"
-        | "processing"
-        | "completed"
-        | "cancelled"
-      product_category: "dinners" | "rooms" | "reservations" | "apartments"
+      user_role: "business" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -565,15 +437,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["business", "customer"],
-      order_status: [
-        "pending",
-        "confirmed",
-        "processing",
-        "completed",
-        "cancelled",
-      ],
-      product_category: ["dinners", "rooms", "reservations", "apartments"],
+      user_role: ["business", "customer"],
     },
   },
 } as const
