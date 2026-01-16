@@ -6,7 +6,7 @@ import { useBusiness } from '@/hooks/useBusinesses';
 import { useProducts } from '@/hooks/useProducts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Phone, Mail, Store } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Store } from 'lucide-react';
 
 export default function BusinessCatalogue() {
   const { id } = useParams<{ id: string }>();
@@ -77,16 +77,10 @@ export default function BusinessCatalogue() {
                       {business.address}
                     </Badge>
                   )}
-                  {business.phone && (
+                  {business.phone_number && (
                     <Badge variant="secondary" className="font-normal">
                       <Phone className="h-3 w-3 mr-1" />
-                      {business.phone}
-                    </Badge>
-                  )}
-                  {business.email && (
-                    <Badge variant="secondary" className="font-normal">
-                      <Mail className="h-3 w-3 mr-1" />
-                      {business.email}
+                      {business.phone_number}
                     </Badge>
                   )}
                 </div>
@@ -95,24 +89,42 @@ export default function BusinessCatalogue() {
           </div>
         </section>
 
-        {/* Products */}
-        <section className="container mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold mb-6">Products ({products?.length || 0})</h2>
-
+        {/* Products/Services */}
+        <section className="container mx-auto px-4 py-6 sm:py-8">
           {productsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-80 rounded-xl" />
+                <Skeleton key={i} className="h-72 sm:h-80 rounded-xl" />
               ))}
             </div>
           ) : products?.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map(product => (
-                <ProductCard key={product.id} product={product} showBusiness={false} />
-              ))}
+            <div className="space-y-8">
+              {/* Reservable Services */}
+              {products.filter(p => p.is_reservable || p.category === 'rooms' || p.category === 'apartments').length > 0 && (
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold mb-4">Rooms & Apartments</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {products.filter(p => p.is_reservable || p.category === 'rooms' || p.category === 'apartments').map(product => (
+                      <ProductCard key={product.id} product={product} showBusiness={false} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Products */}
+              {products.filter(p => !p.is_reservable && p.category !== 'rooms' && p.category !== 'apartments').length > 0 && (
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold mb-4">Products</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    {products.filter(p => !p.is_reservable && p.category !== 'rooms' && p.category !== 'apartments').map(product => (
+                      <ProductCard key={product.id} product={product} showBusiness={false} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="text-center py-16">
+            <div className="text-center py-12 sm:py-16">
               <p className="text-muted-foreground">This business hasn't added any products yet.</p>
             </div>
           )}

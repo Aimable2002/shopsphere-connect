@@ -171,9 +171,12 @@ export default function Menu() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">My Menu</h1>
+      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">My Catalogue</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your products and reservable services</p>
+          </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
               <Button className="gradient-primary border-0">
@@ -337,40 +340,109 @@ export default function Menu() {
             ))}
           </div>
         ) : products?.length ? (
-          <div className="grid gap-4">
-            {products.map(product => (
-              <Card key={product.id} className="border-border/50">
-                <CardContent className="p-4">
-                  <div className="flex gap-4">
-                    <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+          <div className="space-y-6">
+            {/* Reservable Services Section */}
+            {products.filter(p => p.is_reservable || p.category === 'rooms' || p.category === 'apartments').length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <ImageIcon className="h-4 w-4 text-blue-500" />
+                  </span>
+                  Reservable Services
+                </h2>
+                <p className="text-xs text-muted-foreground mb-4">Rooms, apartments, and other bookable services with check-in/out times</p>
+                <div className="grid gap-3 sm:gap-4">
+                  {products.filter(p => p.is_reservable || p.category === 'rooms' || p.category === 'apartments').map(product => (
+                    <Card key={product.id} className="border-blue-500/20">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex gap-3 sm:gap-4">
+                          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                            {product.image_url ? (
+                              <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm sm:text-base">{product.name}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <span className="font-bold text-primary text-sm sm:text-base">
+                                ${Number(product.price).toFixed(2)}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  {product.price_unit === 'per_hour' && '/hour'}
+                                  {product.price_unit === 'per_day' && '/day'}
+                                  {product.price_unit === 'per_night' && '/night'}
+                                </span>
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">{product.category}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleEdit(product)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleDelete(product.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{product.description}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-bold text-primary">${Number(product.price).toFixed(2)}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-muted">{product.category}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon" onClick={() => handleEdit(product)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" onClick={() => handleDelete(product.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Regular Products Section */}
+            {products.filter(p => !p.is_reservable && p.category !== 'rooms' && p.category !== 'apartments').length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center">
+                    <ImageIcon className="h-4 w-4 text-orange-500" />
+                  </span>
+                  Products
+                </h2>
+                <p className="text-xs text-muted-foreground mb-4">Regular items for sale with fixed pricing</p>
+                <div className="grid gap-3 sm:gap-4">
+                  {products.filter(p => !p.is_reservable && p.category !== 'rooms' && p.category !== 'apartments').map(product => (
+                    <Card key={product.id} className="border-border/50">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex gap-3 sm:gap-4">
+                          <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0">
+                            {product.image_url ? (
+                              <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground/30" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-sm sm:text-base">{product.name}</h3>
+                            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{product.description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="font-bold text-primary text-sm sm:text-base">${Number(product.price).toFixed(2)}</span>
+                              <span className="text-xs px-2 py-0.5 rounded bg-muted">{product.category}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleEdit(product)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleDelete(product.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <Card className="border-border/50">
