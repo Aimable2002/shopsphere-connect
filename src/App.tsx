@@ -6,11 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
-import Cart from "./pages/Cart";
 import Auth from "./pages/Auth";
+import Cart from "./pages/Cart";
 import Account from "./pages/Account";
 import Menu from "./pages/Menu";
 import BusinessCatalogue from "./pages/BusinessCatalogue";
+import Reserve from "./pages/Reserve";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,11 +26,12 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/cart" element={<Cart />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/cart" element={<Cart />} />
               <Route path="/account" element={<Account />} />
               <Route path="/menu" element={<Menu />} />
-              <Route path="/business/:businessId" element={<BusinessCatalogue />} />
+              <Route path="/business/:id" element={<BusinessCatalogue />} />
+              <Route path="/reserve/:productId" element={<Reserve />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

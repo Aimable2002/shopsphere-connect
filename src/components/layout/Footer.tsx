@@ -1,68 +1,66 @@
-import { Package, Mail, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Heart } from 'lucide-react';
 
-export const Footer = () => {
+export function Footer() {
   return (
-    <footer className="bg-card border-t mt-auto">
+    <footer className="border-t border-border bg-card mt-auto">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
-          <div>
+          <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Package className="w-6 h-6 text-primary-foreground" />
+              <div className="h-10 w-10 rounded-xl gradient-primary flex items-center justify-center">
+                <span className="text-xl font-bold text-primary-foreground">iS</span>
               </div>
-              <span className="text-xl font-bold">iSupplya</span>
+              <span className="text-xl font-bold text-gradient">iSupplya</span>
             </Link>
-            <p className="text-muted-foreground text-sm">
-              Your trusted online ordering platform connecting businesses with customers.
+            <p className="text-sm text-muted-foreground max-w-xs">
+              Your go-to platform for discovering and booking the best accommodation services - dinners, rooms, and reservations.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="font-semibold mb-4">Quick Links</h3>
+            <h4 className="font-semibold mb-4">Quick Links</h4>
             <nav className="flex flex-col gap-2">
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Marketplace
               </Link>
-              <Link to="/cart" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Cart
+              <Link to="/auth?mode=signup&role=business" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Register Business
               </Link>
-              <Link to="/auth" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                Business Login
+              <Link to="/cart" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Cart
               </Link>
             </nav>
           </div>
 
-          {/* Contact */}
+          {/* Categories */}
           <div>
-            <h3 className="font-semibold mb-4">Contact</h3>
-            <div className="flex flex-col gap-2">
-              <a
-                href="mailto:support@isupplya.com"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Mail className="w-4 h-4" />
-                support@isupplya.com
-              </a>
-              <a
-                href="tel:+1234567890"
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Phone className="w-4 h-4" />
-                +1 (234) 567-890
-              </a>
-            </div>
+            <h4 className="font-semibold mb-4">Categories</h4>
+            <nav className="flex flex-col gap-2">
+              <Link to="/?category=dinners" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Dinners
+              </Link>
+              <Link to="/?category=rooms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Rooms
+              </Link>
+              <Link to="/?category=apartments" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Apartments
+              </Link>
+            </nav>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t text-center">
+        <div className="border-t border-border mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} iSupplya. All rights reserved.
+          </p>
+          <p className="text-sm text-muted-foreground flex items-center gap-1">
+            Made with <Heart className="h-4 w-4 text-primary fill-primary" /> for hospitality
           </p>
         </div>
       </div>
     </footer>
   );
-};
+}

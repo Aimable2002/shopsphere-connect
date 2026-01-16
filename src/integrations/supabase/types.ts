@@ -17,37 +17,40 @@ export type Database = {
       businesses: {
         Row: {
           address: string | null
-          category: string
+          balance: number | null
           created_at: string
           description: string | null
+          email: string | null
           id: string
           logo_url: string | null
           name: string
-          phone_number: string | null
+          phone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
-          category?: string
+          balance?: number | null
           created_at?: string
           description?: string | null
+          email?: string | null
           id?: string
           logo_url?: string | null
           name: string
-          phone_number?: string | null
+          phone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
-          category?: string
+          balance?: number | null
           created_at?: string
           description?: string | null
+          email?: string | null
           id?: string
           logo_url?: string | null
           name?: string
-          phone_number?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -55,36 +58,46 @@ export type Database = {
       }
       order_items: {
         Row: {
+          business_id: string | null
           created_at: string
           id: string
           order_id: string
           product_id: string | null
           product_name: string
+          product_price: number
           quantity: number
-          total_price: number
-          unit_price: number
+          subtotal: number
         }
         Insert: {
+          business_id?: string | null
           created_at?: string
           id?: string
           order_id: string
           product_id?: string | null
           product_name: string
-          quantity?: number
-          total_price: number
-          unit_price: number
+          product_price: number
+          quantity: number
+          subtotal: number
         }
         Update: {
+          business_id?: string | null
           created_at?: string
           id?: string
           order_id?: string
           product_id?: string | null
           product_name?: string
+          product_price?: number
           quantity?: number
-          total_price?: number
-          unit_price?: number
+          subtotal?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "order_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_items_order_id_fkey"
             columns: ["order_id"]
@@ -103,53 +116,83 @@ export type Database = {
       }
       orders: {
         Row: {
-          business_id: string
           created_at: string
           customer_address: string
-          customer_email: string | null
+          customer_email: string
+          customer_id: string | null
           customer_name: string
           customer_phone: string
-          customer_user_id: string | null
           id: string
           platform_fee: number
-          status: string
+          status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at: string
         }
         Insert: {
-          business_id: string
           created_at?: string
           customer_address: string
-          customer_email?: string | null
+          customer_email: string
+          customer_id?: string | null
           customer_name: string
           customer_phone: string
-          customer_user_id?: string | null
           id?: string
-          platform_fee?: number
-          status?: string
+          platform_fee: number
+          status?: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
           updated_at?: string
         }
         Update: {
-          business_id?: string
           created_at?: string
           customer_address?: string
-          customer_email?: string | null
+          customer_email?: string
+          customer_id?: string | null
           customer_name?: string
           customer_phone?: string
-          customer_user_id?: string | null
           id?: string
           platform_fee?: number
-          status?: string
+          status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_id: string
+          paypack_ref: string | null
+          phone_number: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          order_id: string
+          paypack_ref?: string | null
+          phone_number: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          paypack_ref?: string | null
+          phone_number?: string
+          status?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "orders_business_id_fkey"
-            columns: ["business_id"]
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
             isOneToOne: false
-            referencedRelation: "businesses"
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -157,41 +200,50 @@ export type Database = {
       products: {
         Row: {
           business_id: string
-          category: string
+          category: Database["public"]["Enums"]["product_category"]
           created_at: string
           description: string | null
           id: string
           image_url: string | null
-          is_available: boolean
+          is_available: boolean | null
+          is_reservable: boolean | null
+          max_duration_hours: number | null
+          min_duration_hours: number | null
           name: string
           price: number
-          type: string
+          price_unit: string | null
           updated_at: string
         }
         Insert: {
           business_id: string
-          category?: string
+          category: Database["public"]["Enums"]["product_category"]
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean
+          is_available?: boolean | null
+          is_reservable?: boolean | null
+          max_duration_hours?: number | null
+          min_duration_hours?: number | null
           name: string
           price: number
-          type?: string
+          price_unit?: string | null
           updated_at?: string
         }
         Update: {
           business_id?: string
-          category?: string
+          category?: Database["public"]["Enums"]["product_category"]
           created_at?: string
           description?: string | null
           id?: string
           image_url?: string | null
-          is_available?: boolean
+          is_available?: boolean | null
+          is_reservable?: boolean | null
+          max_duration_hours?: number | null
+          min_duration_hours?: number | null
           name?: string
           price?: number
-          type?: string
+          price_unit?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -204,23 +256,162 @@ export type Database = {
           },
         ]
       }
-      user_roles: {
+      profiles: {
         Row: {
+          address: string | null
           created_at: string
+          email: string | null
+          full_name: string | null
           id: string
-          role: Database["public"]["Enums"]["user_role"]
+          phone: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
+          email?: string | null
+          full_name?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["user_role"]
+          phone?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          business_id: string
+          business_payout: number | null
+          created_at: string
+          customer_attended: boolean | null
+          customer_id: string
+          deposit_amount: number
+          end_time: string
+          id: string
+          notes: string | null
+          order_id: string
+          product_id: string | null
+          refund_amount: number | null
+          start_time: string
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          business_payout?: number | null
+          created_at?: string
+          customer_attended?: boolean | null
+          customer_id: string
+          deposit_amount: number
+          end_time: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          product_id?: string | null
+          refund_amount?: number | null
+          start_time: string
+          status?: string
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          business_payout?: number | null
+          created_at?: string
+          customer_attended?: boolean | null
+          customer_id?: string
+          deposit_amount?: number
+          end_time?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          product_id?: string | null
+          refund_amount?: number | null
+          start_time?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      testimonials: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_approved: boolean | null
+          rating: number
+          user_id: string | null
+          user_name: string
+        }
+        Insert: {
+          content: string
           created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["user_role"]
+          is_approved?: boolean | null
+          rating: number
+          user_id?: string | null
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean | null
+          rating?: number
+          user_id?: string | null
+          user_name?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -230,13 +421,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_user_role: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["user_role"]
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
-      user_role: "business" | "customer"
+      app_role: "business" | "customer"
+      order_status:
+        | "pending"
+        | "confirmed"
+        | "processing"
+        | "completed"
+        | "cancelled"
+      product_category: "dinners" | "rooms" | "reservations" | "apartments"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -364,7 +565,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_role: ["business", "customer"],
+      app_role: ["business", "customer"],
+      order_status: [
+        "pending",
+        "confirmed",
+        "processing",
+        "completed",
+        "cancelled",
+      ],
+      product_category: ["dinners", "rooms", "reservations", "apartments"],
     },
   },
 } as const

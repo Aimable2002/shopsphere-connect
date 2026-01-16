@@ -1,1 +1,4 @@
-project_id = "rcrycakcirgpwhtqcyik"
+project_id = "iwmghwncdbhdiblmvkft"
+
+[functions.paypack-payment]
+verify_jwt = false

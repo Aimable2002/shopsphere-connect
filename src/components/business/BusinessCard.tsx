@@ -1,48 +1,65 @@
-import { Store, MapPin } from 'lucide-react';
+import { Business } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Business } from '@/types';
+import { MapPin, Phone, ArrowRight, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 interface BusinessCardProps {
   business: Business;
 }
 
-export const BusinessCard = ({ business }: BusinessCardProps) => {
+export function BusinessCard({ business }: BusinessCardProps) {
   return (
-    <Link to={`/business/${business.id}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer animate-scale-in">
-        <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-accent/20 overflow-hidden">
-          {business.logo_url ? (
-            <img
-              src={business.logo_url}
-              alt={business.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Store className="w-12 h-12 text-primary/50" />
-            </div>
-          )}
-          <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground">
-            {business.category}
-          </Badge>
-        </div>
-        <CardContent className="p-4">
-          <h3 className="font-semibold text-foreground text-lg mb-1">{business.name}</h3>
-          {business.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-              {business.description}
-            </p>
-          )}
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50">
+      {/* Logo */}
+      <div className="relative aspect-video overflow-hidden bg-muted">
+        {business.logo_url ? (
+          <img
+            src={business.logo_url}
+            alt={business.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center gradient-primary">
+            <Store className="h-16 w-16 text-primary-foreground/50" />
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-4 space-y-3">
+        {/* Business Name */}
+        <h3 className="font-semibold text-lg text-foreground">{business.name}</h3>
+
+        {/* Description */}
+        {business.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">{business.description}</p>
+        )}
+
+        {/* Contact Info */}
+        <div className="flex flex-wrap gap-2">
           {business.address && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3" />
-              <span className="line-clamp-1">{business.address}</span>
-            </div>
+            <Badge variant="secondary" className="font-normal">
+              <MapPin className="h-3 w-3 mr-1" />
+              {business.address}
+            </Badge>
           )}
-        </CardContent>
-      </Card>
-    </Link>
+          {business.phone && (
+            <Badge variant="secondary" className="font-normal">
+              <Phone className="h-3 w-3 mr-1" />
+              {business.phone}
+            </Badge>
+          )}
+        </div>
+
+        {/* View Products Button */}
+        <Link to={`/business/${business.id}`}>
+          <Button className="w-full gradient-primary border-0 text-primary-foreground group/btn">
+            View Products
+            <ArrowRight className="h-4 w-4 ml-2 group-hover/btn:translate-x-1 transition-transform" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
   );
-};
+}

@@ -1,210 +1,344 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCustomerOrders, useBusinessOrders } from '@/hooks/useOrders';
+import { useUpdateOrderStatus } from '@/hooks/useUpdateOrderStatus';
+import { useRealtimeOrders } from '@/hooks/useRealtimeOrders';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
-import { useBusinessOrders, useBusinessStats, useUpdateOrderStatus } from '@/hooks/useOrders';
-import { useCustomerOrders } from '@/hooks/useCustomerOrders';
-import { toast } from 'sonner';
-import { Package, Settings, LogOut, DollarSign, ShoppingBag, Clock, Store, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Package, DollarSign, Settings, Store, Phone, User, MapPin, Bell } from 'lucide-react';
+import { format } from 'date-fns';
+import { OrderStatus } from '@/types';
 
-const Account = () => {
-  const { user, business, userRole, signOut, refreshBusiness, loading } = useAuth();
-  const navigate = useNavigate();
-  const [businessForm, setBusinessForm] = useState({ name: '', description: '', phone_number: '', category: 'General', address: '' });
-  const [saving, setSaving] = useState(false);
+const statusOptions: OrderStatus[] = ['pending', 'confirmed', 'processing', 'completed', 'cancelled'];
 
-  const { data: businessOrders = [] } = useBusinessOrders(business?.id || '');
-  const { data: stats } = useBusinessStats(business?.id || '');
-  const { data: customerOrders = [] } = useCustomerOrders(user?.id || '');
+const statusColors: Record<OrderStatus, string> = {
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  confirmed: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  processing: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  completed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+};
+
+function OrderCard({ order, isBusiness }: { order: any; isBusiness: boolean }) {
   const updateStatus = useUpdateOrderStatus();
 
-  useEffect(() => {
-    if (!loading && !user) navigate('/auth');
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (business) setBusinessForm({ name: business.name, description: business.description || '', phone_number: business.phone_number || '', category: business.category, address: business.address || '' });
-  }, [business]);
-
-  const handleSaveBusiness = async () => {
-    if (!businessForm.name) { toast.error('Business name is required'); return; }
-    setSaving(true);
+  const handleStatusChange = async (newStatus: OrderStatus) => {
     try {
-      if (business) {
-        await supabase.from('businesses').update(businessForm).eq('id', business.id);
-      } else {
-        await supabase.from('businesses').insert({ ...businessForm, user_id: user!.id });
-      }
-      await refreshBusiness();
-      toast.success('Business saved!');
-    } catch { toast.error('Failed to save'); }
-    setSaving(false);
-  };
-
-  const formatPrice = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed': return 'bg-blue-100 text-blue-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      await updateStatus.mutateAsync({ orderId: order.id, status: newStatus });
+      toast.success(`Order status updated to ${newStatus}`);
+    } catch (error) {
+      toast.error('Failed to update order status');
     }
   };
 
-  if (loading) return <Layout><div className="flex items-center justify-center py-20">Loading...</div></Layout>;
+  return (
+    <div className="p-4 rounded-lg border border-border space-y-3">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold">Order #{order.id.slice(0, 8)}</p>
+          <p className="text-sm text-muted-foreground">
+            {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold text-lg">${Number(order.total_amount).toFixed(2)}</p>
+        </div>
+      </div>
 
-  const isBusiness = userRole === 'business';
+      {isBusiness && (
+        <div className="flex flex-wrap gap-2 text-sm">
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <User className="h-3 w-3" />
+            {order.customer_name}
+          </div>
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Phone className="h-3 w-3" />
+            {order.customer_phone}
+          </div>
+          {order.customer_address && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              {order.customer_address}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-4">
+        {isBusiness ? (
+          <Select
+            value={order.status}
+            onValueChange={(value) => handleStatusChange(value as OrderStatus)}
+            disabled={updateStatus.isPending}
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block w-2 h-2 rounded-full ${statusColors[status].split(' ')[0]}`} />
+                    <span className="capitalize">{status}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge className={statusColors[order.status as OrderStatus]}>
+            {order.status}
+          </Badge>
+        )}
+
+        {order.items && order.items.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {order.items.length} item{order.items.length > 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function Account() {
+  const navigate = useNavigate();
+  const { user, userRole, business, profile, loading, refreshBusiness, refreshProfile } = useAuth();
+  const customerOrders = useCustomerOrders();
+  const businessOrders = useBusinessOrders(business?.id || '');
+  
+  // Enable real-time order updates for businesses
+  useRealtimeOrders(userRole === 'business' ? business?.id : undefined);
+
+  const [businessForm, setBusinessForm] = useState({
+    name: '',
+    description: '',
+    phone: '',
+    address: '',
+  });
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (business) {
+      setBusinessForm({
+        name: business.name || '',
+        description: business.description || '',
+        phone: business.phone || '',
+        address: business.address || '',
+      });
+    }
+  }, [business]);
+
+  const handleCreateBusiness = async () => {
+    if (!businessForm.name || !businessForm.phone) {
+      toast.error('Please fill in business name and phone');
+      return;
+    }
+
+    const { error } = await supabase.from('businesses').insert({
+      user_id: user!.id,
+      name: businessForm.name,
+      description: businessForm.description,
+      phone: businessForm.phone,
+      address: businessForm.address,
+    });
+
+    if (error) {
+      toast.error('Failed to create business');
+    } else {
+      toast.success('Business created successfully!');
+      refreshBusiness();
+    }
+  };
+
+  const handleUpdateBusiness = async () => {
+    if (!business) return;
+
+    const { error } = await supabase.from('businesses').update({
+      name: businessForm.name,
+      description: businessForm.description,
+      phone: businessForm.phone,
+      address: businessForm.address,
+    }).eq('id', business.id);
+
+    if (error) {
+      toast.error('Failed to update business');
+    } else {
+      toast.success('Business updated!');
+      refreshBusiness();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-8">
+          <Skeleton className="h-8 w-48 mb-8" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const orders = userRole === 'business' ? businessOrders.data : customerOrders.data;
+  const totalOrderValue = orders?.reduce((sum, o) => sum + Number(o.total_amount || 0), 0) || 0;
 
   return (
-    <Layout>
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            {isBusiness ? <Store className="w-6 h-6 text-primary" /> : <User className="w-6 h-6 text-primary" />}
-            <div>
-              <h1 className="text-2xl font-bold">{isBusiness ? (business?.name || 'Set Up Your Business') : 'My Account'}</h1>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-            </div>
-          </div>
-          <Button variant="ghost" onClick={() => { signOut(); navigate('/'); }}><LogOut className="w-4 h-4 mr-2" />Logout</Button>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-8">
+          {userRole === 'business' ? 'Business Dashboard' : 'My Account'}
+        </h1>
 
-        {/* Customer View */}
-        {!isBusiness && (
-          <div className="space-y-6">
+        {userRole === 'business' && (
+          <div className="grid gap-6 md:grid-cols-3 mb-8">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5" />
-                  My Orders
-                </CardTitle>
-                <CardDescription>Track your order history and status</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {customerOrders.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No orders yet</p>
-                    <Button className="mt-4" onClick={() => navigate('/')}>Start Shopping</Button>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-primary/10">
+                    <Package className="h-6 w-6 text-primary" />
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {customerOrders.map((order) => (
-                      <Card key={order.id} className="bg-muted/50">
-                        <CardContent className="p-4">
-                          <div className="flex flex-wrap items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
-                                <p className="font-semibold">{order.business?.name || 'Business'}</p>
-                                <Badge className={getStatusColor(order.status)}>{order.status}</Badge>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{formatDate(order.created_at)}</p>
-                              <p className="text-sm mt-2">{order.order_items?.map(i => `${i.quantity}x ${i.product_name}`).join(', ')}</p>
-                              {order.business?.phone_number && (
-                                <p className="text-sm mt-2 text-primary">Business Contact: {order.business.phone_number}</p>
-                              )}
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-lg">{formatPrice(Number(order.total_amount))}</p>
-                              {order.status === 'pending' && (
-                                <p className="text-xs text-muted-foreground mt-1">Awaiting payment confirmation</p>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Orders</p>
+                    <p className="text-2xl font-bold">{orders?.length || 0}</p>
                   </div>
-                )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-green-500/10">
+                    <DollarSign className="h-6 w-6 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-2xl font-bold">${totalOrderValue.toFixed(2)}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-blue-500/10">
+                    <Store className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Balance</p>
+                    <p className="text-2xl font-bold">${Number(business?.balance || 0).toFixed(2)}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Business View */}
-        {isBusiness && (
-          <>
-            {business && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card><CardContent className="p-4 flex items-center gap-4"><ShoppingBag className="w-8 h-8 text-primary" /><div><p className="text-2xl font-bold">{stats?.totalOrders || 0}</p><p className="text-sm text-muted-foreground">Total Orders</p></div></CardContent></Card>
-                <Card><CardContent className="p-4 flex items-center gap-4"><DollarSign className="w-8 h-8 text-success" /><div><p className="text-2xl font-bold">{formatPrice(stats?.totalRevenue || 0)}</p><p className="text-sm text-muted-foreground">Revenue</p></div></CardContent></Card>
-                <Card><CardContent className="p-4 flex items-center gap-4"><Clock className="w-8 h-8 text-warning" /><div><p className="text-2xl font-bold">{formatPrice(stats?.pendingBalance || 0)}</p><p className="text-sm text-muted-foreground">Pending</p></div></CardContent></Card>
-              </div>
-            )}
+        <Tabs defaultValue="orders">
+          <TabsList>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-            <Tabs defaultValue={business ? "orders" : "settings"}>
-              <TabsList className="mb-6">
-                {business && <TabsTrigger value="orders">Orders</TabsTrigger>}
-                {business && <TabsTrigger value="menu" onClick={() => navigate('/menu')}>Menu</TabsTrigger>}
-                <TabsTrigger value="settings"><Settings className="w-4 h-4 mr-2" />Settings</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="orders">
-                {businessOrders.length === 0 ? (
-                  <div className="text-center py-12"><Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" /><p>No orders yet</p></div>
-                ) : (
+          <TabsContent value="orders" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Orders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {orders?.length ? (
                   <div className="space-y-4">
-                    {businessOrders.map((order) => (
-                      <Card key={order.id}>
-                        <CardContent className="p-4">
-                          <div className="flex flex-wrap items-start justify-between gap-4">
-                            <div>
-                              <p className="font-semibold">{order.customer_name}</p>
-                              <p className="text-sm text-muted-foreground">{order.customer_phone}</p>
-                              <p className="text-sm text-muted-foreground">{order.customer_address}</p>
-                              <p className="text-sm mt-2">{order.order_items?.map(i => `${i.quantity}x ${i.product_name}`).join(', ')}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-lg">{formatPrice(Number(order.total_amount) - Number(order.platform_fee))}</p>
-                              <Select value={order.status} onValueChange={(v) => updateStatus.mutate({ orderId: order.id, status: v })}>
-                                <SelectTrigger className="w-32 mt-2"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                                  <SelectItem value="delivered">Delivered</SelectItem>
-                                  <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                    {orders.map((order: any) => (
+                      <OrderCard
+                        key={order.id}
+                        order={order}
+                        isBusiness={userRole === 'business'}
+                      />
                     ))}
                   </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-8">No orders yet</p>
                 )}
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              <TabsContent value="settings">
-                <Card>
-                  <CardHeader><CardTitle>Business Information</CardTitle></CardHeader>
-                  <CardContent className="space-y-4">
-                    <div><Label>Business Name *</Label><Input value={businessForm.name} onChange={(e) => setBusinessForm({ ...businessForm, name: e.target.value })} /></div>
-                    <div><Label>Description</Label><Textarea value={businessForm.description} onChange={(e) => setBusinessForm({ ...businessForm, description: e.target.value })} /></div>
-                    <div><Label>Phone Number (for payments)</Label><Input value={businessForm.phone_number} onChange={(e) => setBusinessForm({ ...businessForm, phone_number: e.target.value })} /></div>
-                    <div><Label>Category</Label><Input value={businessForm.category} onChange={(e) => setBusinessForm({ ...businessForm, category: e.target.value })} /></div>
-                    <div><Label>Address</Label><Input value={businessForm.address} onChange={(e) => setBusinessForm({ ...businessForm, address: e.target.value })} /></div>
-                    <Button onClick={handleSaveBusiness} disabled={saving}>{saving ? 'Saving...' : 'Save Business'}</Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </>
-        )}
-      </div>
-    </Layout>
+          <TabsContent value="settings" className="mt-6">
+            {userRole === 'business' && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Store className="h-5 w-5" />
+                    Business Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Business Name</Label>
+                      <Input value={businessForm.name} onChange={(e) => setBusinessForm(p => ({ ...p, name: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Phone (for payments)</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className="pl-10" value={businessForm.phone} onChange={(e) => setBusinessForm(p => ({ ...p, phone: e.target.value }))} placeholder="+250..." />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Input value={businessForm.description} onChange={(e) => setBusinessForm(p => ({ ...p, description: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Address</Label>
+                    <Input value={businessForm.address} onChange={(e) => setBusinessForm(p => ({ ...p, address: e.target.value }))} />
+                  </div>
+                  <Button onClick={business ? handleUpdateBusiness : handleCreateBusiness} className="gradient-primary border-0">
+                    {business ? 'Update Business' : 'Create Business'}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Account Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Email: {profile?.email || user?.email}</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
+      <Footer />
+    </div>
   );
-};
-
-export default Account;
+}

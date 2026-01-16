@@ -1,19 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Product, Business } from '@/types';
+import { Product, ProductCategory } from '@/types';
 
-interface ProductWithBusiness extends Product {
-  business: Business;
-}
-
-export const useProducts = (filters?: {
+interface ProductFilters {
   search?: string;
-  category?: string;
-  type?: string;
+  category?: ProductCategory | 'all';
   businessId?: string;
   minPrice?: number;
   maxPrice?: number;
-}) => {
+}
+
+export function useProducts(filters: ProductFilters = {}) {
   return useQuery({
     queryKey: ['products', filters],
     queryFn: async () => {
@@ -25,39 +22,35 @@ export const useProducts = (filters?: {
         `)
         .eq('is_available', true);
 
-      if (filters?.search) {
+      if (filters.search) {
         query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
       }
 
-      if (filters?.category && filters.category !== 'all') {
+      if (filters.category && filters.category !== 'all') {
         query = query.eq('category', filters.category);
       }
 
-      if (filters?.type && filters.type !== 'all') {
-        query = query.eq('type', filters.type);
-      }
-
-      if (filters?.businessId) {
+      if (filters.businessId) {
         query = query.eq('business_id', filters.businessId);
       }
 
-      if (filters?.minPrice !== undefined) {
+      if (filters.minPrice !== undefined) {
         query = query.gte('price', filters.minPrice);
       }
 
-      if (filters?.maxPrice !== undefined) {
+      if (filters.maxPrice !== undefined) {
         query = query.lte('price', filters.maxPrice);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as unknown as ProductWithBusiness[];
+      return data as Product[];
     },
   });
-};
+}
 
-export const useBusinessProducts = (businessId: string) => {
+export function useBusinessProducts(businessId: string) {
   return useQuery({
     queryKey: ['business-products', businessId],
     queryFn: async () => {
@@ -72,38 +65,4 @@ export const useBusinessProducts = (businessId: string) => {
     },
     enabled: !!businessId,
   });
-};
-
-export const useProductCategories = () => {
-  return useQuery({
-    queryKey: ['product-categories'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('category')
-        .eq('is_available', true);
-
-      if (error) throw error;
-      
-      const categories = [...new Set(data.map((p) => p.category))];
-      return categories;
-    },
-  });
-};
-
-export const useProductTypes = () => {
-  return useQuery({
-    queryKey: ['product-types'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('type')
-        .eq('is_available', true);
-
-      if (error) throw error;
-      
-      const types = [...new Set(data.map((p) => p.type))];
-      return types;
-    },
-  });
-};
+}
