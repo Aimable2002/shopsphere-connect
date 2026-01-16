@@ -98,41 +98,50 @@ export default function Cart() {
     setPaymentStep('processing');
   
     try {
-      if (!user?.email) {
-        throw new Error('User email not found');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Please sign in to make payment');
       }
   
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('id, created_at')
-        .eq('customer_email', user.email)
+        .select('id')
+        .eq('customer_email', user?.email)
         .order('created_at', { ascending: false })
         .limit(1);
   
-      if (ordersError) {
-        throw new Error(`Failed to fetch order: ${ordersError.message}`);
-      }
-  
-      if (!orders || orders.length === 0) {
-        throw new Error('No order found. Please create an order first.');
+      if (ordersError || !orders?.[0]) {
+        throw new Error('No order found');
       }
   
       const orderId = orders[0].id;
       const amount = Math.round(getGrandTotal() * 100);
   
-      const { data, error } = await supabase.functions.invoke('paypack-payment', {
-        body: {
-          action: 'initiate',
-          orderId: orderId,
-          phone: customerInfo.phone,
-          amount: amount,
-        },
-      });
+      const response = await fetch(
+        'https://mkamnlvxdjyhpartnony.supabase.co/functions/v1/paypack-payment',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'initiate',
+            orderId: orderId,
+            phone: customerInfo.phone,
+            amount: amount,
+          }),
+        }
+      );
   
-      if (error) {
-        throw new Error(error.message || 'Function invocation failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Payment failed');
       }
   
+      const data = await response.json();
+      
       if (!data.success) {
         throw new Error(data.error || 'Payment initiation failed');
       }
