@@ -228,10 +228,10 @@ export default function Cart() {
                               <Separator className="my-2" />
                               <div className="flex justify-between items-center">
                                 <span className="text-muted-foreground">
-                                  {item.duration} {item.durationUnit} × ${Number(item.product.price).toFixed(2)}
+                                  {item.duration} {item.durationUnit} × RF{Number(item.product.price).toFixed(2)}
                                 </span>
                                 <span className="font-bold text-primary text-sm sm:text-base">
-                                  ${item.calculatedPrice?.toFixed(2)}
+                                  RF{item.calculatedPrice?.toFixed(2)}
                                 </span>
                               </div>
                             </div>
@@ -275,7 +275,7 @@ export default function Cart() {
                             </div>
                             <div className="flex items-center justify-between mt-2">
                               <span className="font-bold text-primary text-sm sm:text-base">
-                                ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                                RF{(Number(item.product.price) * item.quantity).toFixed(2)}
                               </span>
                               <div className="flex items-center gap-1 sm:gap-2">
                                 <Button variant="outline" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => updateQuantity(item.product.id, item.quantity - 1)} disabled={paymentStep !== 'info'}>
@@ -306,19 +306,19 @@ export default function Cart() {
               {reservations.length > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Reservations ({reservations.length})</span>
-                  <span>${reservations.reduce((sum, item) => sum + (item.calculatedPrice || 0), 0).toFixed(2)}</span>
+                  <span>RF{reservations.reduce((sum, item) => sum + (item.calculatedPrice || 0), 0).toFixed(2)}</span>
                 </div>
               )}
               {products.length > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Products ({products.length})</span>
-                  <span>${products.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0).toFixed(2)}</span>
+                  <span>RF{products.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0).toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span>${getTotalPrice().toFixed(2)}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Platform Fee (5%)</span><span>${getPlatformFee().toFixed(2)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span>RF{getTotalPrice().toFixed(2)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Platform Fee (5%)</span><span>RF{getPlatformFee().toFixed(2)}</span></div>
               <Separator />
-              <div className="flex justify-between font-bold text-base sm:text-lg"><span>Total</span><span className="text-primary">${getGrandTotal().toFixed(2)}</span></div>
+              <div className="flex justify-between font-bold text-base sm:text-lg"><span>Total</span><span className="text-primary">RF{getGrandTotal().toFixed(2)}</span></div>
 
               {paymentStep === 'info' && (
                 user ? (

@@ -53,7 +53,7 @@ function OrderCard({ order, isBusiness }: { order: any; isBusiness: boolean }) {
           </p>
         </div>
         <div className="text-right">
-          <p className="font-bold text-lg">${Number(order.total_amount).toFixed(2)}</p>
+          <p className="font-bold text-lg">RF{Number(order.total_amount).toFixed(2)}</p>
         </div>
       </div>
 
@@ -248,7 +248,7 @@ export default function Account() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold">${totalOrderValue.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">RF{totalOrderValue.toFixed(2)}</p>
                   </div>
                 </div>
               </CardContent>

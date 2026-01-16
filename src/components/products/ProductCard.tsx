@@ -142,7 +142,7 @@ export function ProductCard({ product, showBusiness = true }: ProductCardProps) 
 
         <div className="flex items-center justify-between pt-1 sm:pt-2">
           <div className="flex items-center gap-1">
-            <span className="text-lg sm:text-xl font-bold text-primary">${Number(product.price).toFixed(2)}</span>
+            <span className="text-lg sm:text-xl font-bold text-primary">RF{Number(product.price).toFixed(2)}</span>
             {product.price_unit && product.price_unit !== 'fixed' && (
               <span className="text-xs sm:text-sm text-muted-foreground flex items-center gap-0.5">
                 {PriceUnitIcon && <PriceUnitIcon className="h-3 w-3" />}
@@ -172,7 +172,7 @@ export function ProductCard({ product, showBusiness = true }: ProductCardProps) 
                   <div className="p-3 rounded-lg bg-muted/50 flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Rate:</span>
                     <span className="font-semibold text-primary">
-                      ${Number(product.price).toFixed(2)}{priceUnitLabels[product.price_unit]}
+                      RF{Number(product.price).toFixed(2)}{priceUnitLabels[product.price_unit]}
                     </span>
                   </div>
 
@@ -214,10 +214,10 @@ export function ProductCard({ product, showBusiness = true }: ProductCardProps) 
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                       <div className="flex justify-between items-center">
                         <span className="text-sm">
-                          {previewPrice.duration} {previewPrice.unit} × ${Number(product.price).toFixed(2)}
+                          {previewPrice.duration} {previewPrice.unit} × RF{Number(product.price).toFixed(2)}
                         </span>
                         <span className="text-lg font-bold text-primary">
-                          ${previewPrice.total.toFixed(2)}
+                          RF{previewPrice.total.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -236,7 +236,7 @@ export function ProductCard({ product, showBusiness = true }: ProductCardProps) 
                     onClick={handleAddReservation} 
                     disabled={!startDate || !endDate}
                   >
-                    Add to Cart {previewPrice && `- $${previewPrice.total.toFixed(2)}`}
+                    Add to Cart {previewPrice && `- RF${previewPrice.total.toFixed(2)}`}
                   </Button>
                 </div>
               </DialogContent>

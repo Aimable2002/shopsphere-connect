@@ -68,7 +68,7 @@ export default function Admin() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Platform Fees</p>
-                  <p className="text-2xl font-bold">${Number(stats?.total_platform_fees || 0).toFixed(2)}</p>
+                  <p className="text-2xl font-bold">RF{Number(stats?.total_platform_fees || 0).toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -82,7 +82,7 @@ export default function Admin() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Order Value</p>
-                  <p className="text-2xl font-bold">${Number(stats?.total_order_value || 0).toFixed(2)}</p>
+                  <p className="text-2xl font-bold">RF{Number(stats?.total_order_value || 0).toFixed(2)}</p>
                 </div>
               </div>
             </CardContent>
@@ -140,7 +140,7 @@ export default function Admin() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-4xl font-bold">${((stats?.total_order_value || 0) - (stats?.total_platform_fees || 0)).toFixed(2)}</p>
+              <p className="text-4xl font-bold">RF{((stats?.total_order_value || 0) - (stats?.total_platform_fees || 0)).toFixed(2)}</p>
               <p className="text-muted-foreground">Owed to businesses</p>
             </CardContent>
           </Card>
