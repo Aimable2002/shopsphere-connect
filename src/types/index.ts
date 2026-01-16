@@ -107,4 +107,37 @@ export interface PlatformStats {
   pending_orders: number;
   completed_orders: number;
   total_order_value: number;
+  pending_order_value: number;
+  completed_order_value: number;
+  scheduled_reservations: number;
+  scheduled_reservation_value: number;
+  checkedin_reservations: number;
+  checkedin_reservation_value: number;
+  checkedout_reservations: number;
+  checkedout_reservation_value: number;
+  cancelled_reservations: number;
+  cancelled_reservation_value: number;
+  platform_holding: number;
+  platform_payout_pending: number;
+}
+
+export interface OrderWithBusiness {
+  id: string;
+  business_id: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+  customer_address: string;
+  total_amount: number;
+  platform_fee: number;
+  status: string;
+  is_reservation: boolean;
+  reservation_status: string | null;
+  check_in_date: string | null;
+  check_out_date: string | null;
+  created_at: string;
+  updated_at: string;
+  businesses: {
+    name: string;
+  };
 }

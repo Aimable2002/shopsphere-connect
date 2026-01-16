@@ -122,6 +122,8 @@ export type Database = {
       orders: {
         Row: {
           business_id: string
+          check_in_date: string | null
+          check_out_date: string | null
           created_at: string
           customer_address: string
           customer_email: string | null
@@ -129,13 +131,17 @@ export type Database = {
           customer_phone: string
           customer_user_id: string | null
           id: string
+          is_reservation: boolean
           platform_fee: number
+          reservation_status: string | null
           status: string
           total_amount: number
           updated_at: string
         }
         Insert: {
           business_id: string
+          check_in_date?: string | null
+          check_out_date?: string | null
           created_at?: string
           customer_address: string
           customer_email?: string | null
@@ -143,13 +149,17 @@ export type Database = {
           customer_phone: string
           customer_user_id?: string | null
           id?: string
+          is_reservation?: boolean
           platform_fee?: number
+          reservation_status?: string | null
           status?: string
           total_amount: number
           updated_at?: string
         }
         Update: {
           business_id?: string
+          check_in_date?: string | null
+          check_out_date?: string | null
           created_at?: string
           customer_address?: string
           customer_email?: string | null
@@ -157,7 +167,9 @@ export type Database = {
           customer_phone?: string
           customer_user_id?: string | null
           id?: string
+          is_reservation?: boolean
           platform_fee?: number
+          reservation_status?: string | null
           status?: string
           total_amount?: number
           updated_at?: string
