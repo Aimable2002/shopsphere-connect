@@ -116,7 +116,7 @@ export default function Cart() {
       }
   
       const orderId = orders[0].id;
-      const amount = Math.round(getGrandTotal() * 100);
+      const amount = Number(getGrandTotal());
   
       const { data, error } = await supabase.functions.invoke('paypack-payment', {
         body: {
