@@ -49,13 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserRole((data?.role as AppRole) || null);
   };
 
-  const checkIsAdmin = async () => {
-    const { data, error } = await supabase.rpc('is_admin');
-    if (!error && data) {
-      setIsAdmin(true);
-    } else {
-      setIsAdmin(false);
-    }
+  const checkIsAdmin = (email: string | undefined) => {
+    const adminEmail = 'isupplya.b2b@gmail.com';
+    setIsAdmin(email?.toLowerCase() === adminEmail.toLowerCase());
   };
 
   useEffect(() => {
@@ -67,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => {
           fetchBusiness(session.user.id);
           fetchUserRole(session.user.id);
-          checkIsAdmin();
+          checkIsAdmin(session.user.email);
         }, 0);
       } else {
         setBusiness(null);
@@ -83,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         fetchBusiness(session.user.id);
         fetchUserRole(session.user.id);
-        checkIsAdmin();
+        checkIsAdmin(session.user.email);
       }
       setLoading(false);
     });
