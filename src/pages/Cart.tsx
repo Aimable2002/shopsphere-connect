@@ -118,30 +118,19 @@ export default function Cart() {
       const orderId = orders[0].id;
       const amount = Math.round(getGrandTotal() * 100);
   
-      const response = await fetch(
-        'https://mkamnlvxdjyhpartnony.supabase.co/functions/v1/paypack-payment',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'initiate',
-            orderId: orderId,
-            phone: customerInfo.phone,
-            amount: amount,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('paypack-payment', {
+        body: {
+          action: 'initiate',
+          orderId: orderId,
+          phone: customerInfo.phone,
+          amount: amount,
+        },
+      });
   
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Payment failed');
+      if (error) {
+        throw new Error(error.message || 'Payment failed');
       }
   
-      const data = await response.json();
-      
       if (!data.success) {
         throw new Error(data.error || 'Payment initiation failed');
       }

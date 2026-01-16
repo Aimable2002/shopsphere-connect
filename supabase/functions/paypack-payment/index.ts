@@ -148,7 +148,7 @@ serve(async (req) => {
       const paymentResult = await initiatePayment(token, phone, amount);
       
       const { data: payment, error: paymentError } = await supabase
-        .from('payments')
+        .from('payment')
         .insert({
           order_id: orderId,
           paypack_ref: paymentResult.ref,
@@ -187,12 +187,12 @@ serve(async (req) => {
       
       if (webhookData?.status === 'successful') {
         await supabase
-          .from('payments')
+          .from('payment')
           .update({ status: 'completed' })
           .eq('paypack_ref', webhookData.ref);
         
         const { data: payment } = await supabase
-          .from('payments')
+          .from('payment')
           .select('order_id')
           .eq('paypack_ref', webhookData.ref)
           .single();
@@ -218,7 +218,7 @@ serve(async (req) => {
 
     if (action === 'check-status') {
       const { data: payment } = await supabase
-        .from('payments')
+        .from('payment')
         .select('*')
         .eq('order_id', orderId)
         .order('created_at', { ascending: false })
