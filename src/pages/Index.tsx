@@ -17,22 +17,17 @@ import { UtensilsCrossed, Bed, Building2, Store, Sparkles } from 'lucide-react';
 export default function Index() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<ProductCategory | 'all'>('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number | null]>([0, null]);
 
   const { data: products, isLoading: productsLoading } = useProducts({
     search,
     category,
     minPrice: priceRange[0],
-    maxPrice: priceRange[1],
+    maxPrice: priceRange[1] ?? undefined,
   });
 
   const { data: businesses, isLoading: businessesLoading } = useBusinesses({ search });
   const { data: testimonials } = useTestimonials();
-
-  const maxPrice = useMemo(() => {
-    if (!products?.length) return 1000;
-    return Math.max(...products.map(p => Number(p.price)), 1000);
-  }, [products]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -40,40 +35,40 @@ export default function Index() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="gradient-hero py-16 md:py-24">
-          <div className="container mx-auto px-4 text-center">
+        <section className="gradient-hero py-12 md:py-20 px-4">
+          <div className="container mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
               <Sparkles className="h-4 w-4" />
               <span className="text-sm font-medium">Accommodation Services Marketplace</span>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4">
               Find Your Perfect <span className="text-gradient">Stay</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 px-4">
               Discover amazing dinners, comfortable rooms, and convenient reservations from local businesses.
             </p>
             
             {/* Category Quick Links */}
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
               <button
                 onClick={() => setCategory('dinners')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all text-sm sm:text-base"
               >
-                <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+                <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 text-orange-500" />
                 <span className="font-medium">Dinners</span>
               </button>
               <button
                 onClick={() => setCategory('rooms')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all text-sm sm:text-base"
               >
-                <Bed className="h-5 w-5 text-blue-500" />
+                <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
                 <span className="font-medium">Rooms</span>
               </button>
               <button
                 onClick={() => setCategory('apartments')}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-card border border-border hover:border-primary hover:shadow-md transition-all text-sm sm:text-base"
               >
-                <Building2 className="h-5 w-5 text-emerald-500" />
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
                 <span className="font-medium">Apartments</span>
               </button>
             </div>
@@ -81,16 +76,17 @@ export default function Index() {
         </section>
 
         {/* Main Content */}
-        <section className="container mx-auto px-4 py-8">
+        <section className="container mx-auto px-4 py-6 sm:py-8">
           <Tabs defaultValue="products" className="space-y-6">
             <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
               <TabsTrigger value="products" className="gap-2">
                 <UtensilsCrossed className="h-4 w-4" />
-                Products
+                <span className="hidden sm:inline">Products</span>
+                <span className="sm:hidden">Items</span>
               </TabsTrigger>
               <TabsTrigger value="businesses" className="gap-2">
                 <Store className="h-4 w-4" />
-                Businesses
+                <span>Businesses</span>
               </TabsTrigger>
             </TabsList>
 
@@ -101,18 +97,17 @@ export default function Index() {
               onCategoryChange={setCategory}
               priceRange={priceRange}
               onPriceRangeChange={setPriceRange}
-              maxPrice={maxPrice}
             />
 
             <TabsContent value="products" className="space-y-6">
               {productsLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <Skeleton key={i} className="h-80 rounded-xl" />
+                    <Skeleton key={i} className="h-72 sm:h-80 rounded-xl" />
                   ))}
                 </div>
               ) : products?.length ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                   {products.map(product => (
                     <ProductCard key={product.id} product={product} />
                   ))}
@@ -126,13 +121,13 @@ export default function Index() {
 
             <TabsContent value="businesses" className="space-y-6">
               {businessesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <Skeleton key={i} className="h-64 rounded-xl" />
+                    <Skeleton key={i} className="h-72 sm:h-80 rounded-xl" />
                   ))}
                 </div>
               ) : businesses?.length ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {businesses.map(business => (
                     <BusinessCard key={business.id} business={business} />
                   ))}
@@ -147,20 +142,22 @@ export default function Index() {
         </section>
 
         {/* Testimonials */}
-        <section className="bg-muted/50 py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-8">What Our Users Say</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {testimonials?.slice(0, 3).map(t => (
-                <TestimonialCard key={t.id} testimonial={t} />
-              ))}
+        {testimonials && testimonials.length > 0 && (
+          <section className="bg-muted/50 py-12 sm:py-16">
+            <div className="container mx-auto px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">What Our Users Say</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                {testimonials?.slice(0, 3).map(t => (
+                  <TestimonialCard key={t.id} testimonial={t} />
+                ))}
+              </div>
+              <div className="max-w-lg mx-auto">
+                <h3 className="text-lg sm:text-xl font-semibold text-center mb-4">Share Your Experience</h3>
+                <TestimonialForm />
+              </div>
             </div>
-            <div className="max-w-lg mx-auto">
-              <h3 className="text-xl font-semibold text-center mb-4">Share Your Experience</h3>
-              <TestimonialForm />
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <Footer />

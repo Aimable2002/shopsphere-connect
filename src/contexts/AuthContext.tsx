@@ -1,19 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AppRole, Profile, Business } from '@/types';
+import { AppRole, Business } from '@/types';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  profile: Profile | null;
   business: Business | null;
   userRole: AppRole | null;
+  isAdmin: boolean;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, role: AppRole) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
   refreshBusiness: () => Promise<void>;
 }
 
@@ -22,27 +21,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    setProfile(data);
-  };
 
   const fetchBusiness = async (userId: string) => {
     const { data } = await supabase
       .from('businesses')
       .select('*')
       .eq('user_id', userId)
-      .single();
-    setBusiness(data);
+      .maybeSingle();
+    
+    if (data) {
+      setBusiness(data as unknown as Business);
+    } else {
+      setBusiness(null);
+    }
   };
 
   const fetchUserRole = async (userId: string) => {
@@ -50,8 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .single();
-    setUserRole(data?.role as AppRole || null);
+      .maybeSingle();
+    setUserRole((data?.role as AppRole) || null);
+  };
+
+  const checkIsAdmin = async () => {
+    const { data, error } = await supabase.rpc('is_admin');
+    if (!error && data) {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
   };
 
   useEffect(() => {
@@ -61,14 +65,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         setTimeout(() => {
-          fetchProfile(session.user.id);
           fetchBusiness(session.user.id);
           fetchUserRole(session.user.id);
+          checkIsAdmin();
         }, 0);
       } else {
-        setProfile(null);
         setBusiness(null);
         setUserRole(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -77,9 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
         fetchBusiness(session.user.id);
         fetchUserRole(session.user.id);
+        checkIsAdmin();
       }
       setLoading(false);
     });
@@ -103,11 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user_id: data.user.id,
         role: role
       });
-
-      // Update profile with full name
-      await supabase.from('profiles').update({
-        full_name: fullName
-      }).eq('user_id', data.user.id);
     }
 
     return { error };
@@ -125,15 +124,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
-    setProfile(null);
     setBusiness(null);
     setUserRole(null);
-  };
-
-  const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
+    setIsAdmin(false);
   };
 
   const refreshBusiness = async () => {
@@ -147,14 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session,
-        profile,
         business,
         userRole,
+        isAdmin,
         loading,
         signUp,
         signIn,
         signOut,
-        refreshProfile,
         refreshBusiness,
       }}
     >

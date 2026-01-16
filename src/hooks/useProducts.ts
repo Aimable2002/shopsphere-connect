@@ -34,18 +34,19 @@ export function useProducts(filters: ProductFilters = {}) {
         query = query.eq('business_id', filters.businessId);
       }
 
-      if (filters.minPrice !== undefined) {
+      if (filters.minPrice !== undefined && filters.minPrice > 0) {
         query = query.gte('price', filters.minPrice);
       }
 
-      if (filters.maxPrice !== undefined) {
+      // Only apply max price filter if it's explicitly set and not "unlimited"
+      if (filters.maxPrice !== undefined && filters.maxPrice < Infinity) {
         query = query.lte('price', filters.maxPrice);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Product[];
+      return data as unknown as Product[];
     },
   });
 }
@@ -61,7 +62,7 @@ export function useBusinessProducts(businessId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Product[];
+      return data as unknown as Product[];
     },
     enabled: !!businessId,
   });
