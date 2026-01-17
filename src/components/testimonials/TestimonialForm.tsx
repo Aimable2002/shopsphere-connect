@@ -22,7 +22,7 @@ export function TestimonialForm() {
     }
 
     try {
-      await createTestimonial.mutateAsync();
+      await createTestimonial.mutateAsync({ rating, content });
       toast.success('Thank you for your review!');
       setContent('');
       setRating(5);

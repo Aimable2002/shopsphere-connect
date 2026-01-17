@@ -200,7 +200,7 @@ export default function Menu() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Price ($)</Label>
+                      <Label>Price (RF)</Label>
                       <Input type="number" step="0.01" value={form.price} onChange={(e) => setForm(p => ({ ...p, price: e.target.value }))} />
                     </div>
                     <div className="space-y-2">
@@ -370,7 +370,7 @@ export default function Menu() {
                             <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{product.description}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-1">
                               <span className="font-bold text-primary text-sm sm:text-base">
-                                ${Number(product.price).toFixed(2)}
+                                RF{Number(product.price).toFixed(2)}
                                 <span className="text-xs font-normal text-muted-foreground">
                                   {product.price_unit === 'per_hour' && '/hour'}
                                   {product.price_unit === 'per_day' && '/day'}
@@ -424,7 +424,7 @@ export default function Menu() {
                             <h3 className="font-semibold text-sm sm:text-base">{product.name}</h3>
                             <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{product.description}</p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="font-bold text-primary text-sm sm:text-base">${Number(product.price).toFixed(2)}</span>
+                              <span className="font-bold text-primary text-sm sm:text-base">RF{Number(product.price).toFixed(2)}</span>
                               <span className="text-xs px-2 py-0.5 rounded bg-muted">{product.category}</span>
                             </div>
                           </div>

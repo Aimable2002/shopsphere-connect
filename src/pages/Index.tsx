@@ -25,7 +25,6 @@ export default function Index() {
     minPrice: priceRange[0],
     maxPrice: priceRange[1] ?? undefined,
   });
-
   const { data: businesses, isLoading: businessesLoading } = useBusinesses({ search });
   const { data: testimonials } = useTestimonials();
 
